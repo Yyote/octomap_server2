@@ -75,11 +75,13 @@ namespace octomap_server {
         
     protected:
 
-        std::shared_ptr<message_filters::Subscriber<
-                            sensor_msgs::msg::PointCloud2>> m_pointCloudSub;
-        std::shared_ptr<tf2_ros::MessageFilter<
-                            sensor_msgs::msg::PointCloud2>> m_tfPointCloudSub;
+        // std::shared_ptr<message_filters::Subscriber<
+        //                     sensor_msgs::msg::PointCloud2>> m_pointCloudSub;
+        // std::shared_ptr<tf2_ros::MessageFilter<
+        //                     sensor_msgs::msg::PointCloud2>> m_tfPointCloudSub;
         
+        rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pointCloudSub;
+
         static std_msgs::msg::ColorRGBA heightMapColor(double h);
 
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2

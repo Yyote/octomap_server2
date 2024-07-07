@@ -188,24 +188,26 @@ namespace octomap_server {
     }
 
     void OctomapServer::subscribe() {
-        this->m_pointCloudSub = std::make_shared<
-            message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
-                this, "cloud_in", rmw_qos_profile_sensor_data);
+        // this->m_pointCloudSub = std::make_shared<
+        //     message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>(
+        //         this, "cloud_in", rmw_qos_profile_sensor_data);
+
+        m_pointCloudSub = this->create_subscription<sensor_msgs::msg::PointCloud2>("cloud_in", 10, std::bind(&OctomapServer::insertCloudCallback, this, ph::_1));
 
         auto create_timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
             this->get_node_base_interface(),
             this->get_node_timers_interface());
         this->buffer_->setCreateTimerInterface(create_timer_interface);
         
-        this->m_tfPointCloudSub = std::make_shared<tf2_ros::MessageFilter<
-            sensor_msgs::msg::PointCloud2>>(
-                *buffer_, m_worldFrameId, 5,
-                this->get_node_logging_interface(),
-                this->get_node_clock_interface(),
-                std::chrono::seconds(1));
-        this->m_tfPointCloudSub->connectInput(*m_pointCloudSub);
-        this->m_tfPointCloudSub->registerCallback(
-            std::bind(&OctomapServer::insertCloudCallback, this, ph::_1));
+        // this->m_tfPointCloudSub = std::make_shared<tf2_ros::MessageFilter<
+        //     sensor_msgs::msg::PointCloud2>>(
+        //         *buffer_, m_worldFrameId, 5,
+        //         this->get_node_logging_interface(),
+        //         this->get_node_clock_interface(),
+        //         std::chrono::seconds(1));
+        // this->m_tfPointCloudSub->connectInput(*m_pointCloudSub);
+        // this->m_tfPointCloudSub->registerCallback(
+        //     std::bind(&OctomapServer::insertCloudCallback, this, ph::_1));
 
         this->m_octomapBinaryService = this->create_service<OctomapSrv>(
             "octomap_binary",
@@ -291,10 +293,12 @@ namespace octomap_server {
             if (!this->buffer_->canTransform(
                     m_worldFrameId, cloud->header.frame_id,
                     cloud->header.stamp)) {
-                throw "Failed";
+                // throw "Failed";
+                RCLCPP_WARN (this->get_logger(), "Can't transform");
+                return;
             }
             
-            // RCLCPP_INFO(this->get_logger(), "Can transform");
+            RCLCPP_INFO(this->get_logger(), "Can transform");
 
             sensorToWorldTf = this->buffer_->lookupTransform(
                 m_worldFrameId, cloud->header.frame_id,
